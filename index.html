@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Catering – Home</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="script.js"></script>
+  <script type="module" src="js/firebase-init.js"></script>
+  <script type="module" src="js/cart.js"></script>
+  <script type="module" src="js/products.js"></script>
+  <script type="module" src="js/orders.js"></script>
+  <script type="module" src="js/loggers.js">
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { auth } from "./js/firebase-init.js";
+
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { db } from "./js/firebase-init.js";
+
+    const loginLink = document.getElementById("loginLink");
+    const adminLink = document.getElementById("adminLink");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        loginLink.textContent = "Logout";
+        loginLink.href = "#";
+        loginLink.onclick = () => {
+          import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js")
+            .then(({ signOut }) => signOut(auth).then(() => location.reload()));
+        };
+
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const role = snap.exists() ? snap.data().role : "customer";
+
+        if (role === "admin") {
+          adminLink.hidden = false;
+        }
+      }
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Catering</h1>
+    <nav>
+      <a href="login.html" id="loginLink">Login</a>
+      <a href="admin.html" id="adminLink" hidden>Admin</a>
+      <span id="cartCount">🛒 0</span>
+    </nav>
+  </header>
+
+  <main>
+    <section id="productList" class="grid"></section>
+  </main>
+
+  <template id="productCard">
+    <article class="card">
+      <img alt="" class="thumb">
+      <h3 class="name"></h3>
+      <p class="price"></p>
+      <button class="addBtn">Add to cart</button>
+    </article>
+  </template>
+</body>
+</html>
